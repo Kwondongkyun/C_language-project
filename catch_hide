@@ -1,0 +1,305 @@
+#include <stdio.h>
+#include <conio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <math.h>
+
+#define ROW 10
+#define COL 10
+
+void init_board(char board[][COL], int row, int col, int ypos, int xpos);
+void init_runner_pos(char board[][COL], int* runner_y, int* runner_x, int ypos, int xpos);
+void print_array(char board[][COL], int row, int col);
+int set_board(char board[][COL], int* yloc, int* xloc);
+void move_runner(char board[][COL], double dist[], int yloc, int xloc, int* runner_y, int* runner_x);
+int check_status(int yloc, int xloc, int runner_y, int runner_x);
+void cal_distance(double dist[], int size, int yloc, int xloc, int runner_y, int runner_x);
+int find_max_idx(double* arr, int size);
+
+int main(void)
+{
+	while (1)
+	{
+		char board[ROW][COL];
+		double dist[8] = { 0 };
+		
+		srand((unsigned int)time(NULL));
+
+		// 주인공 좌표
+		int xpos = rand() % (ROW);
+		int ypos = rand() % (COL);
+		
+		// 도망자 위치 변수
+		int runner_y, runner_x;
+		
+		// 시도횟수 변수
+		int t_count = 0;
+
+		// 보드 초기화
+		init_board(board, ROW, COL, ypos, xpos);
+		
+		// 도망자 위치 초기화
+		init_runner_pos(board, &runner_y, &runner_x, ypos, xpos);
+
+		printf("왼쪽이동:a, 오른쪽 이동:d 위쪽 이동:w, 아래쪽 이동:s\n\n");
+		 
+		while (1)
+		{
+			// 보드를 화면에 그림
+			print_array(board, ROW, COL);
+
+			// 주인공의 위치를 변경
+			// 사용자가 q를 누르면 종료
+			if (set_board(board, &ypos, &xpos) == -1)
+			{
+				return 0;
+			}
+
+			// 시도횟수 증가
+			t_count++;
+
+			if (check_status(ypos, xpos, runner_y, runner_x) == 1)
+			{
+				printf("\n=================\n");
+				printf("성공하였습니다\n");
+				printf("시도횟수: %d\n", t_count);
+				printf("=================\n\n");
+				break;
+			}
+			
+			move_runner(board, dist, ypos, xpos, &runner_y, &runner_x);
+
+		}
+	}
+	return 0;
+}
+
+void init_board(char board[][COL], int row, int col, int ypos, int xpos)
+{	
+	// 보드를 초기화한다. 
+	for (int y = 0; y < row; y++)
+	{
+		for (int x = 0; x < col; x++)
+		{
+			board[y][x] = '.';
+		}
+	}
+
+	// 주인공의 위치에 # 출력
+	board[ypos][xpos] = '#';
+}
+
+// 게임이 시작 될 때 도망자의 위치를 결정
+// 도망자의 위치는 주인공의 위치가 될 수 없음
+void init_runner_pos(char board[][COL], int* runner_y, int* runner_x, int ypos, int xpos)
+{
+	*runner_y = rand() % ROW;
+	*runner_x = rand() % COL;
+	while ((*runner_y == ypos && *runner_x == xpos))
+	{
+		*runner_y = rand() % ROW;
+		*runner_x = rand() % COL;
+	}
+
+
+	board[*runner_y][*runner_x] = 'R';
+}
+
+// 보드를 그리는 함수
+void print_array(char board[][COL], int row, int col)
+{
+	for (int y = 0; y < row; y++)
+	{
+		for (int x = 0; x < col; x++)
+		{
+			printf("%c", board[y][x]);
+		}
+		printf("\n");
+	}
+	printf("\n");
+}
+
+// 주인공을 이동시키는 함수
+// 사용자로부터 'a', 's', 'd', 'w'를 받아 주인공을 이동
+// 주인공은 보드 밖으로 이동할 수 없다
+// 사용자가 q를 누르면 -1이 return되고, main함수에서 프로그램이 종료
+int set_board(char board[][COL], int* yloc, int* xloc)
+{
+	board[*yloc][*xloc] = '.';
+	int ch = _getch();
+
+	if (ch == 'q')
+	{
+		return -1;
+	}
+	
+	if (ch == 'a')
+	{
+		if((*xloc) - 1 >= 0)
+		{
+			(*xloc)--;
+		}
+		
+	}
+	else if (ch == 's')
+	{
+		if (((*yloc)) + 1 <= ROW - 1)
+		{
+			(*yloc)++;
+		}
+	}
+	else if (ch == 'w')
+	{
+		if ((*yloc) - 1 >= 0)
+		{
+			(*yloc)--;
+		}	
+	}
+	else if (ch == 'd')
+	{
+		if ((*xloc) + 1 <= COL - 1)
+		{
+			(*xloc)++;
+		}
+	}
+
+	board[*yloc][*xloc] = '#';
+
+	return 0;
+}
+
+//도망자를 이동
+//도망자는 8방향으로 이동,
+//주인공으로부터 먼쪽으로 이동
+//도망자는 보드 밖으로 나갈 수 없다
+void move_runner(char board[][COL], double dist[], int yloc, int xloc, int* runner_y, int* runner_x)
+{
+	int opt_dir;
+
+	board[*runner_y][*runner_x] = '.';
+
+	cal_distance(dist, 8, yloc, xloc, *runner_y, *runner_x);
+
+	opt_dir = find_max_idx(dist, 8);
+
+	// 도망자 이동
+	switch (opt_dir)
+	{
+	case 0: // 상
+		(*runner_y)--;
+		break;
+	case 1: // 우상
+		(*runner_y)--;
+		(*runner_x)++;
+		break;
+	case 2: // 우
+		(*runner_x)++;
+		break;
+	case 3: // 우하
+		(*runner_y)++;
+		(*runner_x)++;
+		break;
+	case 4: // 하
+		(*runner_y)++;
+		break;
+	case 5: // 좌하
+		(*runner_y)++;
+		(*runner_x)--;
+		break;
+	case 6: // 좌
+		(*runner_x)--;
+		break;
+	case 7: // 좌상
+		(*runner_x)--;
+		(*runner_y)--;
+		break;
+	default:
+		break;
+	}
+
+	board[*runner_y][*runner_x] = 'R';
+
+}
+
+// 주인공, 도망자의 위치를 확인
+int check_status(int yloc, int xloc, int runner_y, int runner_x)
+{
+	// 주인공의 위치와 도망자의 위치가 같으면 
+	if ((yloc == runner_y) && (xloc == runner_x))
+	{
+		return 1;
+	}
+
+	return 0;
+
+}
+
+// 필기 시험의 지렁이 문제(장애물 생성)처럼 도망자가 이동할 곳의 상태를 확인
+
+void cal_distance(double dist[], int size, int yloc, int xloc, int runner_y, int runner_x)
+{
+	// 거리는 제곱의 합의 제곱근이므로 항상 >= 0
+	// 따라서 거리 배열을 음수로 초기화 해두고 이동할 수 있는 곳의 거리를 계산하면,
+	// 이동할 수 있는 곳의 거리는 양수가 될 것이고, 이동할 수 없는 곳은 음수값으로 남아있게 되므로, 도망자가 이동할 수 있는 곳이 있다면, 절대 선택될 일이 없음.
+	// 즉, 이동할 수 없는 방향이 선택될 일이 없음
+	for (int i = 0; i < size; i++)
+	{
+		dist[i] = -10.0;
+	}
+	
+	// 상. 위로 이동이니 y축만 -방향 확인. 보드 밖으로 나가는 경우는 0보다  작은 경우. 그 경우가 아니면 거리 계산
+	if (runner_y - 1 >= 0)
+	{
+		dist[0] = sqrt(((yloc - (runner_y - 1)) * (yloc - (runner_y - 1))) + ((xloc - (runner_x)) * (xloc - (runner_x))));
+	}
+	// 우상. 우상 이동이니 x측+, y축- 확인.
+	if ((runner_y - 1 >= 0) && runner_x + 1 <= COL - 1)
+	{
+		dist[1] = sqrt(((yloc - (runner_y - 1)) * (yloc - (runner_y - 1))) + ((xloc - (runner_x + 1)) * (xloc - (runner_x + 1))));
+	}
+	// 우
+	if (runner_x + 1 <= COL - 1)
+	{
+		dist[2] = sqrt(((yloc - (runner_y)) * (yloc - (runner_y))) + ((xloc - (runner_x + 1)) * (xloc - (runner_x + 1))));
+	}
+	// 우하
+	if ((runner_y + 1 <= ROW - 1) && runner_x + 1 <= COL - 1)
+	{
+		dist[3] = sqrt(((yloc - (runner_y + 1)) * (yloc - (runner_y + 1))) + ((xloc - (runner_x + 1)) * (xloc - (runner_x + 1))));
+	}
+	// 하
+	if ((runner_y + 1 <= ROW - 1))
+	{
+		dist[4] = sqrt(((yloc - (runner_y + 1)) * (yloc - (runner_y + 1))) + ((xloc - (runner_x)) * (xloc - (runner_x))));
+	}
+	// 좌하
+	if ((runner_y + 1 <= ROW - 1) && runner_x - 1 >= 0)
+	{
+		dist[5] = sqrt(((yloc - (runner_y + 1)) * (yloc - (runner_y + 1))) + ((xloc - (runner_x - 1)) * (xloc - (runner_x - 1))));
+	}
+	// 좌
+	if (runner_x - 1 >= 0)
+	{
+		dist[6] = sqrt(((yloc - (runner_y)) * (yloc - (runner_y))) + ((xloc - (runner_x - 1)) * (xloc - (runner_x - 1))));
+	}
+	// 좌상
+	if ((runner_y - 1 >= 0) && runner_x - 1 >= 0)
+	{
+		dist[7] = sqrt(((yloc - (runner_y - 1)) * (yloc - (runner_y - 1))) + ((xloc - (runner_x - 1)) * (xloc - (runner_x - 1))));
+	}
+}
+
+// 이동 가능 위치 중 가장 먼 곳을 찾는 함수
+int find_max_idx(double* arr, int size)
+{
+	int max_idx = 0;
+    for (int i = 0; i < size; i++)
+    {
+		if (arr[max_idx] <= arr[i])
+		{
+			max_idx = i;
+		}       
+    }
+
+	return max_idx;
+}
