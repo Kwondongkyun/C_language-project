@@ -1,0 +1,167 @@
+#include <stdio.h>
+#include <conio.h>
+#include <stdlib.h>
+#include <time.h>
+
+#define ROW 20
+#define COL 20
+
+void init_board(char board[][COL], int row, int col, int ypos, int xpos);
+void init_obst_pos(char board[][COL]);
+void print_array(char board[][COL], int row, int col);
+int set_board(char board[][COL], int* yloc, int* xloc);
+void generate_obst(char board[][COL], int count);
+int check_status(char board[][COL] , int yloc, int xloc);
+
+int main(void)
+{
+	while (1)
+	{
+		char board[ROW][COL];
+		int xpos = 0;
+		int ypos = 0;
+		int move_cnt = 0;
+
+		srand((unsigned int)time(NULL));
+
+		init_board(board, ROW, COL, ypos, xpos);
+		init_obst_pos(board);
+
+		printf("왼쪽이동:a, 오른쪽 이동:d 위쪽 이동:w, 아래쪽 이동:s\n\n");
+		// 사용자로부터 위치를 받아서 보드에 표시한다.
+		while (1)
+		{
+			print_array(board, ROW, COL);
+			if (set_board(board, &ypos, &xpos) == -1)
+			{
+				return 0;
+			}
+			generate_obst(board, ++move_cnt);
+
+			if (check_status(board, ypos, xpos) == -1)
+			{
+				printf("\n=================\n");
+				printf("실패하였습니다.\n");
+				printf("총 이동 횟수: %d\n", move_cnt);
+				printf("=================\n\n");
+				break;
+			}
+			else
+			{
+				board[ypos][xpos] = '*';
+			}
+
+
+		}
+	}
+	return 0;
+}
+
+void init_board(char board[][COL], int row, int col, int ypos, int xpos)
+{	
+	// 보드를 초기화한다. 
+	for (int y = 0; y < row; y++)
+	{
+		for (int x = 0; x < col; x++)
+		{
+			board[y][x] = '.';
+		}
+	}
+
+	board[ypos][xpos] = '*';
+}
+
+//(rand() % (ROW - 1)와 (rand() % (COL - 1)) + 1 는 1 ~ 19 이므로 0, 0인 주인공 위치에 놓이지 않음
+void init_obst_pos(char board[][COL])
+{
+	board[(rand() % (ROW - 1)) + 1][(rand() % (COL - 1)) + 1] = 'O';
+}
+
+void print_array(char board[][COL], int row, int col)
+{
+	for (int y = 0; y < row; y++)
+	{
+		for (int x = 0; x < col; x++)
+		{
+			printf("%c", board[y][x]);
+		}
+		printf("\n");
+	}
+	printf("\n");
+}
+
+
+int set_board(char board[][COL], int* yloc, int* xloc)
+{
+	int ch = _getch();
+	if (ch == 'a')
+	{
+		if((*xloc) - 1 >= 0) //왼쪽으로 이동. x좌표(-)만 고려하면 됨. 왼쪽이동이니 이동 후 좌표가 0보다 큰지(보드 내부에 있는지) 확인
+		{
+			(*xloc)--;
+		}
+		
+	} 
+	else if (ch == 's')  //아래 이동. y좌표(+)만 고려하면 됨. 아래로 이동이니 이동 후 좌표가 ROW - 1보다 작은지(보드 내부에 있는지) 확인
+	{
+		if (((*yloc)) + 1 <= ROW - 1)
+		{
+			(*yloc)++;
+		}
+	}
+	else if (ch == 'w') //위로 이동. y좌표(-)만 고려하면 됨. 위로 이동이니 이동 후 좌표가 0보다 큰지(보드 내부에 있는지) 확인
+	{
+		if ((*yloc) - 1 >= 0)
+		{
+			(*yloc)--;
+		}	
+	}
+	else if (ch == 'd') //오른쪽으로 이동. x좌표(+)만 고려하면 됨. 오른쪽으로 이동이니 이동 후 좌표가 COL-1보다 작은지(보드 내부에 있는지) 확인
+	{
+		if ((*xloc) + 1 <= COL - 1)
+		{
+			(*xloc)++;
+		}
+	}
+	else if (ch == 'q')
+	{
+		return -1;
+	}
+	return 0;
+}
+
+void  generate_obst(char board[][COL], int count)
+{
+	int tmp_y, tmp_x;
+
+
+	// 장애물 생성
+	if (count % 3 == 0)
+	{
+
+		tmp_y = rand() % ROW; // 0 ~ 19
+		tmp_x = rand() % COL; // 0 ~ 19
+
+		// 장애물의 위치에 이미 장애물이 있는지, 지렁이의 궤적인지 확인하여 아닌 곳이 나올 때까지 반복
+		while (board[tmp_x][tmp_y] == 'O' || board[tmp_x][tmp_y] == '*') 
+		{
+			tmp_y = rand() % ROW;
+			tmp_x = rand() % COL;
+		}
+
+
+		board[tmp_y][tmp_x] = 'O';
+	}
+
+}
+
+int check_status(char board[][COL], int yloc, int xloc)
+{
+	// 현재 좌표가 지렁이의 궤적이거나 장애물의 위치면 return -1;
+	if ((board[yloc][xloc] == '*') || (board[yloc][xloc] == 'O'))
+	{
+		return -1;
+	}
+
+	return 0;
+}
