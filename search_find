@@ -1,0 +1,95 @@
+// 정렬 & 탐색
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+void selection_sorting(int* arr, int* arr2, int size);
+void gen_rand(int* arr, int size, int cnt);
+void print_array(int* arr, int size);
+
+int main(void)
+{
+	srand((unsigned int)time(NULL));
+
+	int freq[10] = { 0 };
+	int num[10] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+	int input;
+
+	// 빈도수 계산&출력
+	gen_rand(freq, 10, 1000);
+	printf("출현빈도\n");
+	print_array(num, 10);
+	print_array(freq, 10);
+	printf("\n");
+
+	// 정렬 & 출력
+	printf("정렬후\n");
+	selection_sorting(freq, num, 10);
+	print_array(num, 10);
+	print_array(freq, 10);
+	printf("\n");
+
+	printf("숫자를 입력하시오: ");
+	scanf_s("%d", &input);
+	getchar();
+	printf("\n");
+
+	for (int i = 0; i < 10; i++)
+	{
+		if (freq[i] >= input)
+		{
+			printf("%2d: %d회\n", num[i], freq[i]);
+		}
+	}
+	printf("\n");
+
+
+	return 0;
+
+}
+
+// arr은 빈도수 배열 arr2는 해당 숫자 배열(0, 1, 2, 3...)임
+void selection_sorting(int* arr, int* arr2, int size)
+{
+	int least;
+	int tmp;
+
+	for (int i = 0; i < size - 1; i++)
+	{
+		least = i;
+
+		for (int j = i + 1; j < size; j++)
+		{
+			if (*(arr + j) < *(arr + least))
+			{
+				least = j;
+			}
+		}
+		tmp = *(arr + i);
+		*(arr + i) = *(arr + least);
+		*(arr + least) = tmp;
+
+		// 위에서 빈도수로 정렬할 때, 해당 숫자를 바꿔주는 부분만 추가하면 됨
+		tmp = *(arr2 + i);
+		*(arr2 + i) = *(arr2 + least);
+		*(arr2 + least) = tmp;
+	}
+}
+
+// 빈도수 count 함수
+void gen_rand(int* arr, int size, int cnt)
+{
+	for (int i = 0; i < cnt; i++)
+	{
+		++(*(arr + rand() % size));
+	}
+}
+
+void print_array(int* arr, int size)
+{
+	for (int i = 0; i < size; i++)
+	{
+		printf("%4d", *(arr + i));
+	}
+	printf("\n");
+}
