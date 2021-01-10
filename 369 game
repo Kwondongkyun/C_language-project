@@ -1,0 +1,158 @@
+// 369 게임
+#include <stdio.h>
+
+int check_369_num(int num);
+
+int main(void)
+{
+	while (1)
+	{
+		int digit_num_369 = 0; //현재 숫자의 3, 6, 9의 개수
+		int cur_num = 0; // 현재 출력되어야 할 숫자
+		int user_input; // 사용자의 입력
+		int try_count = 0; //시도 횟수
+
+		printf("\n===============================================\n\n");
+		printf("다음 숫자를 입력하세요.\n");
+		printf("숫자에 3, 6, 9가 들어가면 개수를 음수로 입력하세요.\n");
+		printf("예. 6: -1, 36: -2, 366: -3\n");
+		printf("\n===============================================\n");
+		while (1)
+		{
+			// 현재까지의 숫자 / 문자 출력
+			// 컴퓨터 차례
+			printf("\n컴퓨터 입력 차례\n");
+			cur_num++;
+			for (int i = 1; i <= cur_num; i++)
+			{
+				digit_num_369 = check_369_num(i);
+
+				// 숫자에 3, 6, 9가 없다면 해당 숫자 출력
+				if (digit_num_369 == 0)
+				{
+					printf("%d ", i);
+				}
+				// 숫자에 3, 6, 9가 있다면, 3, 6, 9 개수만큼 X출력
+				else
+				{
+					for (int j = 1; j <= digit_num_369; j++)
+					{
+						printf("%c", 'X');
+					}
+					printf(" ");
+				}
+			}
+			printf("\n\n");
+			cur_num++;
+
+			// 사용자 차례
+			printf("나의 입력차례: ");
+			scanf_s("%d", &user_input);
+			getchar();
+
+			// -101 입력시 종료
+			if (user_input == -101)
+			{
+				printf("\n종료합니다\n\n");
+				return 0;
+			}
+
+			// -101이 아닌 음수를 입력했다는 것은 사용자의 판단에 3, 6, 9가 있다는 것
+			if (user_input < 0)
+			{
+				user_input = -user_input;
+				try_count++;
+
+				// 현재 숫자에 3, 6, 9의 개수 판단
+				digit_num_369 = check_369_num(cur_num);
+
+				// 사용자가 판단한 3, 6, 9의 개수와 실제 3, 6, 9의 개수가 다르면 게임 종료
+				if (user_input != digit_num_369)
+				{
+					printf("\n실패하였습니다. 시도횟수: %d\n\n", try_count);
+					break;
+				}
+
+				// 사용자가 판단한 3, 6, 9의 개수와 실제 3, 6, 9의 개수가 같으면 화면에 출력
+				for (int i = 1; i <= cur_num; i++)
+				{
+					digit_num_369 = check_369_num(i);
+					// 숫자에 3, 6, 9가 없다면 해당 숫자 출력
+					if (digit_num_369 == 0)
+					{
+						printf("%d ", i);
+					}
+					// 숫자에 3, 6, 9가 있다면, 3, 6, 9 개수만큼 X출력
+					else
+					{
+						for (int j = 1; j <= digit_num_369; j++)
+						{
+							printf("%c", 'X');
+						}
+						printf(" ");
+					}
+				}
+				printf("\n\n");
+			}
+			// 사용자가 양수를 입력했다는 것은 사용자의 판단에 3, 6, 9가 없다는 것
+			else
+			{
+				try_count++;
+				// 현재 숫자와 사용자의 입력 숫자가 다르면 틀린 것
+				if (user_input != cur_num)
+				{
+					printf("\n실패하였습니다. 시도횟수: %d\n\n", try_count);
+					break;
+				}
+
+				// 현재 숫자와 사용자의 입력 숫자가 같으면 화면에 출력
+				for (int i = 1; i <= cur_num; i++)
+				{
+					digit_num_369 = check_369_num(i);
+
+					if (digit_num_369 == 0)
+					{
+						printf("%d ", i);
+					}
+					else
+					{
+						for (int j = 1; j <= digit_num_369; j++)
+						{
+							printf("%c", 'X');
+						}
+						printf(" ");
+					}
+				}
+				printf("\n\n");
+			}
+
+		}
+	}
+	return 0;
+}
+
+// 입력 숫자에 3 또는 6 또는 9가 몇개 포함되었는지 판단하는 함수
+
+int check_369_num(int num)
+{
+	// 종료조건
+	// 3. 더이상 확인할 자리수가 없다면 0을 return한다
+	if (num == 0)
+	{
+		return 0;
+	}
+	else
+	{
+		// 1. 입력숫자를 10으로 나눈 나머지(첫번째 자리수)가 3 또는 6 또는 9이면, 1을 더하고 check_369_num함수를 호출한다. 이때 첫번째 자리는 확인했으니 입력숫자/10을 해서 매개변수로 전달한다
+		if (num % 10 == 3 || num % 10 == 6 || num % 10 == 9)
+		{
+			return 1 + check_369_num(num / 10);
+		}
+		// 2. 입력숫자를 10으로 나눈 나머지(첫번째 자리수)가 3과 6과 9가 아니면, check_369_num함수를 호출한다. 이때 첫번째 자리는 확인했으니 입력숫자/10을 해서 매개변수로 전달한다
+		else
+		{
+			return check_369_num(num / 10);
+		}
+
+	}
+}
