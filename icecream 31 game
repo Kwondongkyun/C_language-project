@@ -1,0 +1,149 @@
+// 아이스크림31게임
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#define RESULT 31
+
+// 숫자 출력 및 현재 숫자 확인 함수
+int check_and_print_value(int cur, int num, int id);
+
+int main(void)
+{
+	// 누가 먼저하는지 판단하는 변수
+	int order = 0;
+	
+	// 사용자가 입력한 수
+	int num = 0;
+	
+	// 현재 수
+	int current_num = 0;
+
+	srand((unsigned int)time(NULL));
+
+	while (1)
+	{
+		printf("누가 먼저 시작, 사용자(1) 컴퓨터(2): ");
+		scanf_s("%d", &order);
+		getchar();
+
+		if (order != 1 && order != 2)
+		{
+			continue;
+		}
+
+
+		if (order == 1) // 사용자 먼저
+		{
+			while (1) {
+				// 사용자 차례
+				printf("\n숫자를 입력하시오(1, 2, 3): ");
+				scanf_s("%d", &num);
+
+				if (num == -1)
+				{
+					printf("종료합니다.\n\n");
+					return 0;
+				}
+
+				if (num != 1 && num != 2 && num != 3)
+				{
+					continue;
+				}
+
+				if (check_and_print_value(current_num, num, 1) == -1)
+				{
+					printf("컴퓨터 승리\n\n");
+					current_num = 0;
+					break;
+				}
+				current_num = current_num + num;
+
+				// 컴퓨터 차례
+				num = rand() % 3 + 1;
+
+				if (check_and_print_value(current_num, num, 2) == -1)
+				{
+					printf("사용자 승리\n\n");
+					current_num = 0;
+					break;
+				}
+				current_num = current_num + num;
+			}
+
+		}
+		else // 컴퓨터 먼저
+		{
+			while (1) {
+				// 컴퓨터 차례
+				num = rand() % 3 + 1;
+
+				if (check_and_print_value(current_num, num, 2) == -1)
+				{
+					printf("사용자 승리\n\n");
+					current_num = 0;
+					break;
+				}
+				current_num = current_num + num;
+
+				//사용자 차례
+				printf("\n숫자를 입력하시오(1, 2, 3): ");
+				scanf_s("%d", &num);
+
+				if (num == -1)
+				{
+					printf("종료합니다.\n\n");
+					return 0;
+				}
+
+				if (num != 1 && num != 2 && num != 3)
+				{
+					continue;
+				}
+
+				if (check_and_print_value(current_num, num, 1) == -1)
+				{
+					printf("컴퓨터 승리\n\n");
+					current_num = 0;
+					break;
+				}
+				current_num = current_num + num;
+			}
+
+		}
+
+	}
+
+	return 0;
+}
+
+// 현재의 숫자를 확인하며 출력하는 함수
+// 31이 출력되면 게임이 종료 -> 더 이상 출력X
+// 즉, 출력 값이 31이면 -1을 return하여 main함수에 알려준다
+// cur는 현재까지 불린 숫자, num는 추가되어야 할 숫자이다
+// Ex) cur가 10, num이 2라면 
+// 1 2 3 4 5 6 7 8 9 10 11 12 까지 출력된다
+int check_and_print_value(int cur, int num, int id)
+{
+	if (id == 1)
+	{
+		printf("\n사용자 차례\n");
+	}
+	else if (id == 2)
+	{
+		printf("\n컴퓨터 차례\n");
+	}
+
+	for (int i = 1; i <= cur + num; i++)
+	{
+		printf("%d ", i);
+
+		if (i == RESULT)
+		{
+			printf("\n");
+			return -1;
+		}
+
+	}
+	printf("\n\n");
+	return 1;
+}
